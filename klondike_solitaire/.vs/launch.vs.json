@@ -1,0 +1,41 @@
+{
+  "version": "0.2.1",
+  "defaults": {},
+  "configurations": [
+    {
+      "type": "python",
+      "interpreter": "(default)",
+      "interpreterPath": "${workspaceRoot}\\..\\.python\\python.exe",
+      "project": "main.py",
+      "name": "main.py --gui (Launch GUI)",
+      "args": [
+        "--gui"
+      ]
+    },
+    {
+      "type": "python",
+      "interpreter": "(default)",
+      "interpreterPath": "${workspaceRoot}\\..\\.python\\python.exe",
+      "project": "main.py",
+      "name": "main.py --cli (Console UI)",
+      "args": [
+        "--cli"
+      ]
+    },
+    {
+      "type": "python",
+      "interpreter": "(default)",
+      "interpreterPath": "${workspaceRoot}\\..\\.python\\python.exe",
+      "project": "main.py",
+      "name": "main.py --test (Automated Tests)",
+      "args": [
+        "--test"
+      ]
+    },
+    {
+      "type": "default",
+      "project": "run_game.bat",
+      "name": "run_game.bat"
+    }
+  ]
+}

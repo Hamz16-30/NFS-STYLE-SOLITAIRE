@@ -1,0 +1,2141 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="run">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Midnight Run - Klondike Solitaire (CSC200 DSA Edition)</title>
+  
+  <!-- Google Fonts: Motorsport & Racing Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@600;700;900&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600;700&family=Orbitron:ital,wght@0,500;0,700;0,900;1,700;1,900&family=Racing+Sans+One&family=Russo+One&display=swap" rel="stylesheet">
+  
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+
+  <style>
+    /* ==========================================================================
+       THEME DEFINITIONS: Midnight Run (Default), Midnight Casino, Paper Minimal
+       ========================================================================== */
+    :root {
+      /* DEFAULT: MIDNIGHT RUN (Street-Racing Vibe) */
+      --bg-table: #08090d;
+      --accent-neon: #00f0ff;
+      --accent-nitro: #ff5500;
+      --accent-glow: rgba(0, 240, 255, 0.45);
+      --hud-bg: rgba(10, 12, 18, 0.88);
+      --slot-border: rgba(0, 240, 255, 0.3);
+      --card-border: rgba(220, 235, 255, 0.6);
+      --font-display: 'Orbitron', 'Russo One', sans-serif;
+      --font-hud: 'Orbitron', 'Inter', sans-serif;
+      --font-mono: 'JetBrains Mono', monospace;
+    }
+
+    /* THEME 1: MIDNIGHT RUN */
+    [data-theme="run"] {
+      --bg-table: #090a0f;
+      --accent-neon: #00f0ff;
+      --accent-nitro: #ff3c00;
+      --accent-glow: rgba(0, 240, 255, 0.5);
+      --hud-bg: rgba(8, 10, 16, 0.92);
+      --slot-border: rgba(0, 240, 255, 0.35);
+      --card-border: rgba(200, 225, 255, 0.7);
+      --font-display: 'Orbitron', 'Russo One', sans-serif;
+    }
+
+    /* THEME 2: MIDNIGHT CASINO */
+    [data-theme="casino"] {
+      --bg-table: radial-gradient(circle at 50% 30%, #0d3822 0%, #061c11 65%, #020905 100%);
+      --accent-neon: #e5b958;
+      --accent-nitro: #f59e0b;
+      --accent-glow: rgba(229, 185, 88, 0.4);
+      --hud-bg: rgba(6, 28, 17, 0.85);
+      --slot-border: rgba(229, 185, 88, 0.25);
+      --card-border: rgba(229, 185, 88, 0.35);
+      --font-display: 'Cinzel', serif;
+    }
+
+    /* THEME 3: PAPER MINIMAL */
+    [data-theme="paper"] {
+      --bg-table: radial-gradient(circle at 50% 30%, #f4eee2 0%, #e8decb 70%, #d8cdb7 100%);
+      --accent-neon: #8c6b32;
+      --accent-nitro: #b45309;
+      --accent-glow: rgba(140, 107, 50, 0.25);
+      --hud-bg: rgba(244, 238, 226, 0.92);
+      --slot-border: rgba(140, 107, 50, 0.3);
+      --card-border: rgba(140, 107, 50, 0.35);
+      --font-display: 'Inter', sans-serif;
+    }
+
+    * {
+      box-sizing: border-box;
+      user-select: none;
+      -webkit-user-select: none;
+      touch-action: manipulation;
+    }
+
+    body {
+      background: var(--bg-table);
+      font-family: var(--font-hud);
+      overflow: hidden;
+      min-height: 100vh;
+      color: #fff;
+    }
+
+    [data-theme="paper"] body {
+      color: #2b2115;
+    }
+
+    /* ==========================================================================
+       MIDNIGHT RUN RACING SCENERY & TEXTURES
+       ========================================================================== */
+    .asphalt-surface {
+      background-color: #08090e;
+      background-image: 
+        radial-gradient(circle at 50% 10%, rgba(255, 60, 0, 0.12) 0%, transparent 50%),
+        radial-gradient(circle at 85% 20%, rgba(0, 240, 255, 0.14) 0%, transparent 45%),
+        radial-gradient(circle at 15% 25%, rgba(255, 0, 128, 0.12) 0%, transparent 45%),
+        linear-gradient(rgba(255, 255, 255, 0.02) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(255, 255, 255, 0.02) 1px, transparent 1px);
+      background-size: 100% 100%, 100% 100%, 100% 100%, 30px 30px, 30px 30px;
+    }
+
+    /* Wet Road Reflection Sheen */
+    .wet-road-glare {
+      background: linear-gradient(180deg, 
+        rgba(0, 240, 255, 0.06) 0%, 
+        rgba(255, 60, 0, 0.04) 40%, 
+        transparent 75%
+      );
+      mix-blend-mode: screen;
+      pointer-events: none;
+    }
+
+    /* Dark Carbon-Fiber Panel for Tableau Area */
+    .carbon-fiber-plate {
+      background: 
+        linear-gradient(27deg, #12141a 5px, transparent 5px) 0 5px,
+        linear-gradient(207deg, #12141a 5px, transparent 5px) 10px 0px,
+        linear-gradient(27deg, #1a1d26 5px, transparent 5px) 0px 10px,
+        linear-gradient(207deg, #1a1d26 5px, transparent 5px) 10px 5px,
+        linear-gradient(90deg, #0d0f14 10px, transparent 10px),
+        linear-gradient(#0e1017 25%, #0a0c10 25%, #0a0c10 50%, #0e1017 50%, #0e1017 75%, #0a0c10 75%, #0a0c10 100%);
+      background-size: 20px 20px;
+      border: 1px solid rgba(0, 240, 255, 0.22);
+      box-shadow: 0 10px 35px rgba(0, 0, 0, 0.85), 0 0 25px rgba(0, 240, 255, 0.12);
+      border-radius: 12px;
+    }
+
+    [data-theme="casino"] .carbon-fiber-plate {
+      background: rgba(4, 20, 12, 0.8);
+      border: 1px solid rgba(229, 185, 88, 0.3);
+      box-shadow: 0 10px 35px rgba(0,0,0,0.7), inset 0 0 30px rgba(0,0,0,0.5);
+    }
+
+    [data-theme="paper"] .carbon-fiber-plate {
+      background: rgba(235, 226, 210, 0.85);
+      border: 1px solid rgba(140, 107, 50, 0.25);
+      box-shadow: 0 8px 24px rgba(0,0,0,0.08);
+    }
+
+    /* Horizontal Speed Streaks */
+    .speed-streak-container {
+      position: absolute;
+      inset: 0;
+      pointer-events: none;
+      overflow: hidden;
+      z-index: 1;
+    }
+    .speed-streak {
+      position: absolute;
+      height: 1.5px;
+      background: linear-gradient(90deg, transparent, rgba(0, 240, 255, 0.8), rgba(255, 255, 255, 0.9), transparent);
+      animation: streakAcross 3.5s linear infinite;
+      opacity: 0.25;
+    }
+    .speed-streak.fast {
+      animation-duration: 1.2s;
+      opacity: 0.65;
+      background: linear-gradient(90deg, transparent, #ff3c00, #ffea00, transparent);
+    }
+    @keyframes streakAcross {
+      0% { transform: translateX(-100vw); }
+      100% { transform: translateX(100vw); }
+    }
+
+    /* ==========================================================================
+       SOLITAIRE CARD STYLING: Angular Chamfer Cut, Chrome Edge, Racing Stripes
+       ========================================================================== */
+    .solitaire-card {
+      width: clamp(44px, 12.4vw, 86px);
+      aspect-ratio: 5 / 7;
+      perspective: 1000px;
+      touch-action: none;
+      transition: transform 0.16s cubic-bezier(0.2, 0.85, 0.25, 1), box-shadow 0.16s ease;
+      will-change: transform, left, top;
+    }
+
+    .solitaire-card.is-dragging {
+      z-index: 9999 !important;
+      opacity: 0.96;
+      box-shadow: 0 20px 42px rgba(0, 0, 0, 0.85), 0 0 22px var(--accent-glow);
+      pointer-events: none;
+      transform: scale(1.06) rotate(1.5deg);
+    }
+
+    .card-inner {
+      position: relative;
+      width: 100%;
+      height: 100%;
+      transition: transform 0.32s cubic-bezier(0.4, 0, 0.2, 1);
+      transform-style: preserve-3d;
+      border-radius: 6px;
+    }
+
+    .solitaire-card.face-up .card-inner {
+      transform: rotateY(0deg);
+    }
+    .solitaire-card.face-down .card-inner {
+      transform: rotateY(180deg);
+    }
+
+    .card-face {
+      position: absolute;
+      inset: 0;
+      backface-visibility: hidden;
+      border-radius: 6px;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      padding: clamp(3px, 0.7vw, 6px);
+      box-sizing: border-box;
+      /* Chrome Edge Accent */
+      border: 1.5px solid rgba(220, 235, 255, 0.75);
+      box-shadow: 0 4px 14px rgba(0, 0, 0, 0.6), inset 0 0 0 1px rgba(255, 255, 255, 0.15);
+    }
+
+    /* Card Front: Clean matte race finish with bold sports typography */
+    .card-front {
+      background: #fdfdfd;
+      color: #0b0f17;
+    }
+
+    .card-front.red-suit {
+      color: #ff103f !important;
+      text-shadow: 0 0 4px rgba(255, 16, 63, 0.25);
+    }
+    .card-front.black-suit {
+      color: #10141d !important;
+    }
+
+    /* Card Back: Carbon-fiber weave with orange/red racing stripe & chevron */
+    .card-back {
+      transform: rotateY(180deg);
+      background: #0a0b10;
+      border-color: rgba(255, 60, 0, 0.6) !important;
+    }
+
+    .racing-card-back {
+      width: 100%;
+      height: 100%;
+      position: relative;
+      border-radius: 4px;
+      background: 
+        repeating-linear-gradient(45deg, #111319 0, #111319 2px, #0a0b0e 2px, #0a0b0e 4px),
+        repeating-linear-gradient(-45deg, #111319 0, #111319 2px, #06070a 2px, #06070a 4px);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      overflow: hidden;
+    }
+
+    /* Orange to Red Racing Stripe */
+    .racing-stripe {
+      position: absolute;
+      top: 0;
+      bottom: 0;
+      width: 18%;
+      background: linear-gradient(180deg, #ff6600 0%, #ff1100 100%);
+      box-shadow: 0 0 8px rgba(255, 85, 0, 0.6);
+    }
+    .racing-stripe::before, .racing-stripe::after {
+      content: '';
+      position: absolute;
+      top: 0;
+      bottom: 0;
+      width: 2px;
+      background: #fff;
+      opacity: 0.8;
+    }
+    .racing-stripe::before { left: -3px; }
+    .racing-stripe::after { right: -3px; }
+
+    /* Aerodynamic Chevron Emblem */
+    .chevron-emblem {
+      z-index: 2;
+      width: clamp(18px, 4vw, 28px);
+      height: clamp(18px, 4vw, 28px);
+      background: #08090d;
+      border: 1.5px solid #00f0ff;
+      transform: rotate(45deg);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 0 10px rgba(0, 240, 255, 0.7);
+    }
+    .chevron-inner {
+      transform: rotate(-45deg);
+      color: #00f0ff;
+      font-size: 11px;
+      font-weight: 900;
+      font-style: italic;
+    }
+
+    /* Card Slots (Empty targets) */
+    .card-slot {
+      width: clamp(44px, 12.4vw, 86px);
+      aspect-ratio: 5 / 7;
+      border-radius: 6px;
+      border: 1.5px dashed var(--slot-border);
+      background: rgba(10, 12, 18, 0.45);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      position: relative;
+      transition: all 0.2s ease;
+    }
+    .card-slot.valid-target {
+      border-color: #00f0ff !important;
+      box-shadow: 0 0 18px rgba(0, 240, 255, 0.85), inset 0 0 12px rgba(0, 240, 255, 0.35) !important;
+      transform: scale(1.02);
+    }
+
+    /* Foundation Nitro Glow on drop */
+    .nitro-flash {
+      animation: nitroFlashAnim 0.6s ease-out;
+    }
+    @keyframes nitroFlashAnim {
+      0% { box-shadow: 0 0 0 0 rgba(0, 240, 255, 0.9), inset 0 0 20px #ff3c00; }
+      50% { box-shadow: 0 0 30px 10px rgba(0, 240, 255, 0.7), inset 0 0 30px #ff3c00; }
+      100% { box-shadow: 0 0 0 0 transparent; }
+    }
+
+    /* ==========================================================================
+       DASHBOARD HUD: Speedometer, Digital Odometer, Tachometer Arc, Nitro Bar
+       ========================================================================== */
+    .dashboard-gauge {
+      position: relative;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    /* Digital Odometer Rolling Number Look */
+    .odometer-box {
+      font-family: 'JetBrains Mono', 'Orbitron', monospace;
+      background: #000;
+      border: 1px solid rgba(0, 240, 255, 0.4);
+      padding: 2px 6px;
+      border-radius: 4px;
+      color: #00f0ff;
+      text-shadow: 0 0 8px rgba(0, 240, 255, 0.7);
+      letter-spacing: 2px;
+      box-shadow: inset 0 0 6px rgba(0, 240, 255, 0.3);
+    }
+
+    /* Nitro Combo Bar */
+    .nitro-bar-container {
+      width: clamp(70px, 12vw, 130px);
+      height: 10px;
+      background: #0a0b10;
+      border: 1px solid rgba(255, 60, 0, 0.5);
+      border-radius: 6px;
+      overflow: hidden;
+      position: relative;
+      box-shadow: 0 0 8px rgba(255, 60, 0, 0.25);
+    }
+    .nitro-bar-fill {
+      height: 100%;
+      width: 0%;
+      background: linear-gradient(90deg, #00f0ff 0%, #ff5500 70%, #ff0055 100%);
+      box-shadow: 0 0 12px rgba(255, 85, 0, 0.8);
+      transition: width 0.3s cubic-bezier(0.2, 0.8, 0.2, 1);
+    }
+
+    /* Speed burst effect */
+    .burst-overlay {
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      z-index: 7000;
+      opacity: 0;
+      transition: opacity 0.25s ease;
+      background: radial-gradient(circle at 50% 50%, transparent 60%, rgba(0, 240, 255, 0.25) 100%);
+    }
+    .burst-overlay.active {
+      opacity: 1;
+    }
+
+    /* Angular Neon Buttons */
+    .neon-btn {
+      font-family: 'Orbitron', sans-serif;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      clip-path: polygon(6px 0, 100% 0, 100% calc(100% - 6px), calc(100% - 6px) 100%, 0 100%, 0 6px);
+      transition: all 0.18s ease;
+    }
+    .neon-btn:hover {
+      box-shadow: 0 0 14px var(--accent-neon);
+      transform: translateY(-1px);
+    }
+
+    /* Checkered Flag Pattern for Win Banner */
+    .checkered-banner {
+      background-image: 
+        linear-gradient(45deg, #000 25%, transparent 25%), 
+        linear-gradient(-45deg, #000 25%, transparent 25%), 
+        linear-gradient(45deg, transparent 75%, #000 75%), 
+        linear-gradient(-45deg, transparent 75%, #000 75%);
+      background-size: 20px 20px;
+      background-position: 0 0, 0 10px, 10px -10px, -10px 0px;
+      background-color: #fff;
+    }
+  </style>
+</head>
+
+<body class="relative h-screen w-screen flex flex-col justify-between selection:bg-cyan-500 selection:text-black asphalt-surface">
+
+  <!-- Speed Streaks in background -->
+  <div class="speed-streak-container">
+    <div class="speed-streak" style="top: 15%; width: 250px; animation-delay: 0s;"></div>
+    <div class="speed-streak" style="top: 35%; width: 400px; animation-delay: 1.5s;"></div>
+    <div class="speed-streak" style="top: 60%; width: 300px; animation-delay: 0.8s;"></div>
+    <div class="speed-streak" style="top: 85%; width: 450px; animation-delay: 2.2s;"></div>
+    <div id="fastStreak" class="speed-streak fast hidden" style="top: 48%; width: 800px;"></div>
+  </div>
+
+  <!-- Wet Road Sheen Overlay -->
+  <div class="absolute inset-0 wet-road-glare"></div>
+
+  <!-- NITRO BURST OVERLAY -->
+  <div id="nitroBurstOverlay" class="burst-overlay"></div>
+
+  <!-- ========================================================================
+       TOP DASHBOARD HUD
+       ======================================================================== -->
+  <header class="w-full z-40 px-3 py-2 border-b border-cyan-500/20 backdrop-blur-md flex items-center justify-between shadow-xl" style="background: var(--hud-bg);">
+    <!-- Brand / Title -->
+    <div class="flex items-center gap-2 md:gap-4">
+      <div class="flex items-center gap-2">
+        <span class="w-3 h-3 rounded-full bg-cyan-400 shadow-[0_0_12px_#00f0ff] animate-pulse"></span>
+        <h1 class="text-base md:text-xl font-bold tracking-wider italic flex items-center gap-1.5" style="font-family: var(--font-display);">
+          <span class="bg-gradient-to-r from-cyan-400 via-white to-orange-500 bg-clip-text text-transparent drop-shadow-[0_2px_8px_rgba(0,240,255,0.6)]">MIDNIGHT RUN</span>
+          <span class="text-[10px] md:text-xs font-mono font-bold px-2 py-0.5 rounded bg-black/70 border border-cyan-400/50 text-cyan-300 shadow-[0_0_10px_rgba(0,240,255,0.4)]">CSC200</span>
+        </h1>
+      </div>
+
+      <!-- Dashboard Gauges: Speedometer (Timer), Odometer (Score), Tachometer (Moves) -->
+      <div class="hidden sm:flex items-center gap-4 ml-2 border-l border-white/15 pl-4 text-xs font-mono">
+        <!-- SPEEDOMETER TIMER -->
+        <div class="flex items-center gap-1.5">
+          <svg class="w-5 h-5 text-amber-400" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+            <circle cx="12" cy="12" r="9" stroke-width="2" stroke-dasharray="38" stroke-dashoffset="10"/>
+            <path d="M12 12 L16 8" stroke-width="2" stroke-linecap="round"/>
+          </svg>
+          <span class="text-zinc-400 text-[10px]">TIME:</span>
+          <span id="hudTimer" class="font-bold text-amber-300 drop-shadow-[0_0_8px_rgba(251,191,36,0.6)]">00:00</span>
+        </div>
+
+        <!-- DIGITAL ODOMETER SCORE -->
+        <div class="flex items-center gap-1.5">
+          <span class="text-zinc-400 text-[10px]">SCORE:</span>
+          <div id="hudScore" class="odometer-box font-bold">00000</div>
+        </div>
+
+        <!-- TACHOMETER MOVES -->
+        <div class="flex items-center gap-1.5">
+          <span class="text-zinc-400 text-[10px]">MOVES:</span>
+          <span id="hudMoves" class="font-bold text-orange-400 drop-shadow-[0_0_8px_rgba(255,85,0,0.6)]">0</span>
+        </div>
+
+        <!-- NITRO COMBO BAR -->
+        <div class="flex items-center gap-1.5">
+          <span class="text-[10px] font-bold text-cyan-400 italic">NITRO:</span>
+          <div class="nitro-bar-container" title="Consecutive moves charge Nitro!">
+            <div id="nitroBarFill" class="nitro-bar-fill"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Quick Action Controls -->
+    <div class="flex items-center gap-1.5 md:gap-2">
+      <!-- Mobile stats -->
+      <div class="sm:hidden flex items-center gap-2 text-[11px] font-mono text-zinc-300 mr-1">
+        <span><b id="hudScoreMobile" class="text-cyan-400">0</b> pts</span>
+        <span id="hudTimerMobile" class="text-amber-300">00:00</span>
+      </div>
+
+      <!-- Hint -->
+      <button id="btnHint" title="Hint (H)" class="p-1.5 md:px-2.5 md:py-1 rounded bg-cyan-950/40 hover:bg-cyan-900/60 active:scale-95 text-xs text-cyan-300 border border-cyan-400/40 flex items-center gap-1 neon-btn">
+        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"/></svg>
+        <span class="hidden md:inline">Hint</span>
+      </button>
+
+      <!-- Undo -->
+      <button id="btnUndo" title="Undo (U)" class="p-1.5 md:px-2.5 md:py-1 rounded bg-black/40 hover:bg-black/60 active:scale-95 text-xs text-white border border-white/20 flex items-center gap-1 neon-btn">
+        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h10a5 5 0 015 5v2m0 0l-4-4m4 4l4-4M3 10l4 4M3 10l4-4"/></svg>
+        <span class="hidden md:inline">Undo</span>
+      </button>
+
+      <!-- Redo -->
+      <button id="btnRedo" title="Redo (R)" class="p-1.5 md:px-2.5 md:py-1 rounded bg-black/40 hover:bg-black/60 active:scale-95 text-xs text-white border border-white/20 flex items-center gap-1 neon-btn">
+        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 10H11a5 5 0 00-5 5v2m0 0l4-4m-4 4l-4-4m18-6l-4 4m4-4l-4-4"/></svg>
+        <span class="hidden md:inline">Redo</span>
+      </button>
+
+      <!-- Draw 1/3 Toggle -->
+      <button id="btnDrawMode" class="text-[11px] font-mono px-2 py-1 rounded bg-black/50 hover:bg-black/70 border border-orange-500/50 text-orange-400 neon-btn" title="Toggle Draw Mode (1 or 3)">
+        DRAW: <span id="drawModeLabel" class="font-bold">1</span>
+      </button>
+
+      <!-- Sound Toggle (Muted by default) -->
+      <button id="btnSound" class="p-1.5 rounded bg-black/40 hover:bg-black/60 border border-white/20 text-zinc-300 hover:text-white neon-btn" title="Sound Toggle (Web Audio)">
+        <svg id="soundIconOn" class="w-3.5 h-3.5 hidden text-cyan-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.536 8.464a5 5 0 010 7.072m2.828-9.9a9 9 0 010 12.728M5.586 15H4a1 1 0 01-1-1v-4a1 1 0 011-1h1.586l4.707-4.707C10.923 3.663 12 4.109 12 5v14c0 .891-1.077 1.337-1.707.707L5.586 15z"/></svg>
+        <svg id="soundIconOff" class="w-3.5 h-3.5 text-zinc-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5.586 15H4a1 1 0 01-1-1v-4a1 1 0 011-1h1.586l4.707-4.707C10.923 3.663 12 4.109 12 5v14c0 .891-1.077 1.337-1.707.707L5.586 15zM17 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2"/></svg>
+      </button>
+
+      <!-- Theme Switcher -->
+      <button id="btnTheme" class="p-1.5 rounded bg-black/40 hover:bg-black/60 border border-cyan-400/40 text-cyan-300 neon-btn" title="Switch Theme (Run / Casino / Paper)">
+        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 21a4 4 0 01-4-4 4 4 0 014-4c.72 0 1.39.19 1.97.51A7.002 7.002 0 0112 3a7 7 0 016.97 6.49c.58-.32 1.25-.51 1.97-.51a4 4 0 014 4 4 4 0 01-4 4h-2a2 2 0 00-2 2 2 2 0 01-2 2h-1a2 2 0 01-2-2v-1a2 2 0 00-2-2H7z"/></svg>
+      </button>
+
+      <!-- X-Ray DSA Inspector Toggle -->
+      <button id="btnXRay" class="px-2 py-1 rounded bg-cyan-950/40 hover:bg-cyan-900/60 border border-cyan-400 text-cyan-300 text-xs font-mono font-bold flex items-center gap-1 shadow-sm neon-btn">
+        <span>X-RAY</span>
+        <span class="w-2 h-2 rounded-full bg-emerald-400 animate-ping"></span>
+      </button>
+
+      <!-- New Game Deal -->
+      <button id="btnNewGame" class="p-1.5 md:px-3 md:py-1 rounded bg-gradient-to-r from-orange-600 via-red-600 to-cyan-500 hover:from-orange-500 hover:to-cyan-400 text-black font-black text-xs tracking-wider neon-btn shadow-[0_0_15px_rgba(255,85,0,0.6)]">
+        NEW DEAL
+      </button>
+    </div>
+  </header>
+
+  <!-- ========================================================================
+       MAIN PLAYING AREA (TABLE)
+       ======================================================================== -->
+  <main class="relative flex-1 w-full max-w-5xl mx-auto px-2 md:px-4 py-3 flex flex-col justify-start gap-4 md:gap-6 overflow-hidden">
+    <!-- Dark Carbon-Fiber Backing Plate behind piles for readability -->
+    <div class="absolute inset-2 md:inset-4 carbon-fiber-plate -z-10"></div>
+
+    <!-- TOP ROW: Stock & Waste (Left) | Seed & Mode (Center) | Foundations (Right) -->
+    <div class="w-full flex items-center justify-between px-2 pt-2 z-10">
+      <!-- Stock (Queue) + Waste (Stack) -->
+      <div class="flex items-center gap-3 md:gap-5">
+        <!-- Stock Queue -->
+        <div class="relative">
+          <div id="stockSlot" class="card-slot cursor-pointer hover:border-cyan-400 transition" title="Stock Queue (FIFO) - Click to Draw">
+            <!-- Rendered by JS -->
+          </div>
+          <span class="absolute -bottom-4 left-1/2 -translate-x-1/2 text-[9px] font-mono text-zinc-400 tracking-wider">STOCK</span>
+        </div>
+
+        <!-- Waste Stack -->
+        <div class="relative">
+          <div id="wasteSlot" class="card-slot relative">
+            <span class="text-zinc-600 text-xs">∅</span>
+          </div>
+          <span class="absolute -bottom-4 left-1/2 -translate-x-1/2 text-[9px] font-mono text-zinc-400 tracking-wider">WASTE</span>
+        </div>
+      </div>
+
+      <!-- Center Seed & Backend Indicator -->
+      <div class="hidden md:flex flex-col items-center">
+        <span class="text-[10px] text-zinc-400 font-mono tracking-widest">SEED #</span>
+        <button id="btnCopySeed" class="text-xs font-mono text-cyan-300 hover:text-white border border-cyan-400/30 px-2 py-0.5 rounded bg-black/40 hover:bg-black/60 transition flex items-center gap-1" title="Click to copy shuffle seed">
+          <span id="currentSeedDisplay">123456</span>
+          <svg class="w-3 h-3 text-zinc-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"/></svg>
+        </button>
+      </div>
+
+      <!-- Foundations F1 to F4 (Stacks: Spades, Hearts, Clubs, Diamonds) -->
+      <div class="flex items-center gap-2 md:gap-3">
+        <!-- Spades -->
+        <div class="relative">
+          <div id="foundation-0" data-pile="f-0" data-suit="spades" class="card-slot foundation-slot">
+            <span class="text-zinc-500 text-lg">♠</span>
+          </div>
+          <span class="absolute -bottom-4 left-1/2 -translate-x-1/2 text-[9px] font-mono text-zinc-400">♠ F1</span>
+        </div>
+        <!-- Hearts -->
+        <div class="relative">
+          <div id="foundation-1" data-pile="f-1" data-suit="hearts" class="card-slot foundation-slot">
+            <span class="text-red-500/70 text-lg">♥</span>
+          </div>
+          <span class="absolute -bottom-4 left-1/2 -translate-x-1/2 text-[9px] font-mono text-zinc-400">♥ F2</span>
+        </div>
+        <!-- Clubs -->
+        <div class="relative">
+          <div id="foundation-2" data-pile="f-2" data-suit="clubs" class="card-slot foundation-slot">
+            <span class="text-zinc-500 text-lg">♣</span>
+          </div>
+          <span class="absolute -bottom-4 left-1/2 -translate-x-1/2 text-[9px] font-mono text-zinc-400">♣ F3</span>
+        </div>
+        <!-- Diamonds -->
+        <div class="relative">
+          <div id="foundation-3" data-pile="f-3" data-suit="diamonds" class="card-slot foundation-slot">
+            <span class="text-red-500/70 text-lg">♦</span>
+          </div>
+          <span class="absolute -bottom-4 left-1/2 -translate-x-1/2 text-[9px] font-mono text-zinc-400">♦ F4</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- BOTTOM ROW: 7 Tableau Columns (T1 to T7, Doubly Linked Lists) -->
+    <div id="tableauArea" class="w-full flex-1 flex justify-between gap-1.5 md:gap-3 px-2 pt-5 pb-6 overflow-hidden z-10">
+      <div class="tableau-col relative flex-1 min-h-[300px]" data-col="0">
+        <div class="card-slot opacity-35"><span class="text-zinc-500 text-[10px] font-mono">T1</span></div>
+      </div>
+      <div class="tableau-col relative flex-1 min-h-[300px]" data-col="1">
+        <div class="card-slot opacity-35"><span class="text-zinc-500 text-[10px] font-mono">T2</span></div>
+      </div>
+      <div class="tableau-col relative flex-1 min-h-[300px]" data-col="2">
+        <div class="card-slot opacity-35"><span class="text-zinc-500 text-[10px] font-mono">T3</span></div>
+      </div>
+      <div class="tableau-col relative flex-1 min-h-[300px]" data-col="3">
+        <div class="card-slot opacity-35"><span class="text-zinc-500 text-[10px] font-mono">T4</span></div>
+      </div>
+      <div class="tableau-col relative flex-1 min-h-[300px]" data-col="4">
+        <div class="card-slot opacity-35"><span class="text-zinc-500 text-[10px] font-mono">T5</span></div>
+      </div>
+      <div class="tableau-col relative flex-1 min-h-[300px]" data-col="5">
+        <div class="card-slot opacity-35"><span class="text-zinc-500 text-[10px] font-mono">T6</span></div>
+      </div>
+      <div class="tableau-col relative flex-1 min-h-[300px]" data-col="6">
+        <div class="card-slot opacity-35"><span class="text-zinc-500 text-[10px] font-mono">T7</span></div>
+      </div>
+    </div>
+  </main>
+
+  <!-- ========================================================================
+       DSA X-RAY INSPECTOR DRAWER (Side Drawer)
+       ======================================================================== -->
+  <div id="xrayDrawer" class="fixed top-0 right-0 h-full w-full sm:w-96 bg-black/95 border-l border-cyan-500/30 backdrop-blur-xl z-50 transform translate-x-full transition-transform duration-300 flex flex-col shadow-2xl">
+    <div class="p-3 border-b border-cyan-500/20 flex items-center justify-between bg-zinc-950/80">
+      <div class="flex items-center gap-2">
+        <span class="w-2.5 h-2.5 rounded-full bg-cyan-400 shadow-[0_0_8px_#00f0ff]"></span>
+        <h2 class="text-sm font-bold font-mono tracking-wider text-cyan-300">DSA ARCHITECTURE INSPECTOR</h2>
+      </div>
+      <button id="btnCloseXray" class="p-1 rounded hover:bg-white/10 text-zinc-400 hover:text-white">
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+      </button>
+    </div>
+
+    <div class="flex-1 overflow-y-auto p-3 space-y-4 text-xs font-mono">
+      <!-- 1. Stock Queue Live Stream (DS-3) -->
+      <div class="p-2.5 rounded bg-zinc-900/80 border border-cyan-500/20">
+        <div class="flex items-center justify-between text-cyan-300 mb-1.5">
+          <span class="font-bold">1. STOCK QUEUE (FIFO)</span>
+          <span class="text-[10px] text-zinc-400">Head &rarr; Tail</span>
+        </div>
+        <div id="xrayQueueStream" class="flex gap-1.5 overflow-x-auto pb-1 text-[11px] text-zinc-300">
+          <!-- Filled by JS -->
+        </div>
+      </div>
+
+      <!-- 2. Waste Stack Top (DS-2) -->
+      <div class="p-2.5 rounded bg-zinc-900/80 border border-cyan-500/20 flex items-center justify-between">
+        <span class="font-bold text-cyan-300">2. WASTE STACK (LIFO)</span>
+        <span id="xrayWasteTop" class="text-amber-300 font-bold">Empty</span>
+      </div>
+
+      <!-- 3. Foundation Stacks (DS-2) -->
+      <div class="p-2.5 rounded bg-zinc-900/80 border border-cyan-500/20">
+        <div class="flex items-center justify-between text-cyan-300 mb-1">
+          <span class="font-bold">3. FOUNDATION STACKS (4x LIFO)</span>
+          <span id="xrayFoundationsTotal" class="text-amber-300 font-bold">0 / 52</span>
+        </div>
+        <div id="xrayFoundationDetails" class="grid grid-cols-4 gap-1 text-[10px] text-center text-zinc-400">
+          <div>♠: <b id="xf0">0</b></div>
+          <div>♥: <b id="xf1">0</b></div>
+          <div>♣: <b id="xf2">0</b></div>
+          <div>♦: <b id="xf3">0</b></div>
+        </div>
+      </div>
+
+      <!-- 4. Tableau Doubly Linked Lists (DS-4, DS-6) -->
+      <div class="p-2.5 rounded bg-zinc-900/80 border border-cyan-500/20">
+        <div class="font-bold text-cyan-300 mb-1.5">4. TABLEAU DOUBLY LINKED LISTS</div>
+        <div id="xrayTableauList" class="space-y-1 text-[10px] text-zinc-300">
+          <!-- Filled by JS -->
+        </div>
+      </div>
+
+      <!-- 5. Card Location HashMap (DS-5, DS-9) -->
+      <div class="p-2.5 rounded bg-zinc-900/80 border border-cyan-500/20">
+        <div class="flex items-center justify-between text-cyan-300 mb-1">
+          <span class="font-bold">5. CARD LOCATION HASHMAP</span>
+          <span class="text-[10px] text-zinc-400">52 Cards Tracked</span>
+        </div>
+        <div id="xrayHashMapBody" class="max-h-36 overflow-y-auto space-y-0.5 text-[9px] text-zinc-400 pr-1">
+          <!-- Filled by JS -->
+        </div>
+      </div>
+
+      <!-- Operations Log -->
+      <div class="p-2.5 rounded bg-zinc-900/80 border border-cyan-500/20">
+        <div class="font-bold text-cyan-300 mb-1.5">LIVE OPERATIONS LOG</div>
+        <div id="xrayOpsLog" class="space-y-1 max-h-32 overflow-y-auto">
+          <!-- Filled by JS -->
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ========================================================================
+       VICTORY MODAL: RACE SUMMARY & CHECKERED FLAG CASCADE
+       ======================================================================== -->
+  <canvas id="winCanvas" class="fixed inset-0 pointer-events-none z-[8000]"></canvas>
+
+  <div id="winModal" class="fixed inset-0 bg-black/85 backdrop-blur-md z-[8500] hidden flex items-center justify-center p-4">
+    <div class="w-full max-w-md bg-zinc-950 border-2 border-cyan-400 rounded-lg shadow-[0_0_50px_rgba(0,240,255,0.6)] overflow-hidden text-center">
+      <!-- Checkered Header -->
+      <div class="h-6 checkered-banner w-full"></div>
+      
+      <div class="p-6">
+        <h2 class="text-3xl font-black italic tracking-widest text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 via-white to-orange-500" style="font-family: var(--font-display);">
+          FINISH LINE!
+        </h2>
+        <p class="text-xs text-cyan-300 font-mono mt-1">RACE SUMMARY &bull; ALL 52 CARDS CLEARED</p>
+
+        <!-- Stats Breakdown -->
+        <div class="my-5 p-4 rounded bg-black/60 border border-cyan-500/30 grid grid-cols-2 gap-3 text-left font-mono">
+          <div>
+            <span class="text-[10px] text-zinc-400 block">TIME ELAPSED</span>
+            <span id="winTime" class="text-base font-bold text-amber-300">01:45</span>
+          </div>
+          <div>
+            <span class="text-[10px] text-zinc-400 block">TOTAL MOVES</span>
+            <span id="winMoves" class="text-base font-bold text-orange-400">82</span>
+          </div>
+          <div>
+            <span class="text-[10px] text-zinc-400 block">FINAL SCORE</span>
+            <span id="winScore" class="text-base font-bold text-cyan-300">740 pts</span>
+          </div>
+          <div>
+            <span class="text-[10px] text-zinc-400 block">DRIVER RANK</span>
+            <span class="text-base font-bold text-emerald-400">S-TIER APEX</span>
+          </div>
+        </div>
+
+        <div class="flex gap-2">
+          <button id="btnWinNewGame" class="flex-1 py-2.5 rounded bg-gradient-to-r from-orange-600 to-cyan-500 hover:from-orange-500 hover:to-cyan-400 text-black font-black text-sm uppercase tracking-wider neon-btn">
+            RACE AGAIN
+          </button>
+          <button id="btnWinClose" class="px-4 py-2.5 rounded bg-zinc-800 hover:bg-zinc-700 text-white font-mono text-sm neon-btn">
+            VIEW BOARD
+          </button>
+        </div>
+      </div>
+      <div class="h-3 checkered-banner w-full"></div>
+    </div>
+  </div>
+
+  <!-- TOAST NOTIFICATION -->
+  <div id="toastBox" class="fixed bottom-6 left-1/2 -translate-x-1/2 z-50 pointer-events-none transition-opacity duration-300 opacity-0">
+    <div id="toastText" class="px-4 py-2 rounded bg-black/90 border border-cyan-400/80 text-cyan-300 text-xs font-mono shadow-2xl backdrop-blur-md">
+      Welcome to Midnight Run!
+    </div>
+  </div>
+
+  <!-- ========================================================================
+       JAVASCRIPT ARCHITECTURE:
+       1. Custom Hand-Written DSA (Stack, Queue, DoublyLinkedList, HashMap, RNG)
+       2. Web Audio Synthesizer (Engine Rev, Tire Screech, Turbo Whoosh, Fanfare)
+       3. Solitaire Engine & UI Controller (with REST API sync & local fallback)
+       ======================================================================== -->
+  <script>
+    /* ==========================================================================
+       1. HAND-WRITTEN CORE DATA STRUCTURES
+       ========================================================================== */
+    class Node {
+      constructor(value) {
+        this.value = value;
+        this.next = null;
+      }
+    }
+
+    class DLNode {
+      constructor(card) {
+        this.card = card;
+        this.prev = null;
+        this.next = null;
+      }
+    }
+
+    class CustomStack {
+      constructor() {
+        this.top = null;
+        this._size = 0;
+      }
+      push(val) {
+        const node = new Node(val);
+        node.next = this.top;
+        this.top = node;
+        this._size++;
+      }
+      pop() {
+        if (!this.top) return null;
+        const v = this.top.value;
+        this.top = this.top.next;
+        this._size--;
+        return v;
+      }
+      peek() {
+        return this.top ? this.top.value : null;
+      }
+      isEmpty() { return this._size === 0; }
+      size() { return this._size; }
+      toArray() {
+        const arr = [];
+        let curr = this.top;
+        while (curr) {
+          arr.push(curr.value);
+          curr = curr.next;
+        }
+        return arr;
+      }
+      clear() {
+        this.top = null;
+        this._size = 0;
+      }
+    }
+
+    class CustomQueue {
+      constructor() {
+        this.head = null;
+        this.tail = null;
+        this._size = 0;
+      }
+      enqueue(val) {
+        const node = new Node(val);
+        if (!this.tail) {
+          this.head = this.tail = node;
+        } else {
+          this.tail.next = node;
+          this.tail = node;
+        }
+        this._size++;
+      }
+      dequeue() {
+        if (!this.head) return null;
+        const v = this.head.value;
+        this.head = this.head.next;
+        if (!this.head) this.tail = null;
+        this._size--;
+        return v;
+      }
+      peek() {
+        return this.head ? this.head.value : null;
+      }
+      isEmpty() { return this._size === 0; }
+      size() { return this._size; }
+      toArray() {
+        const arr = [];
+        let curr = this.head;
+        while (curr) {
+          arr.push(curr.value);
+          curr = curr.next;
+        }
+        return arr;
+      }
+      clear() {
+        this.head = this.tail = null;
+        this._size = 0;
+      }
+    }
+
+    class CustomDoublyLinkedList {
+      constructor() {
+        this.head = null;
+        this.tail = null;
+        this._size = 0;
+      }
+      append(card) {
+        const node = new DLNode(card);
+        if (!this.head) {
+          this.head = this.tail = node;
+        } else {
+          this.tail.next = node;
+          node.prev = this.tail;
+          this.tail = node;
+        }
+        this._size++;
+        return node;
+      }
+      removeTail() {
+        if (!this.tail) return null;
+        const c = this.tail.card;
+        if (this.head === this.tail) {
+          this.head = this.tail = null;
+        } else {
+          this.tail = this.tail.prev;
+          this.tail.next = null;
+        }
+        this._size--;
+        return c;
+      }
+      peekTail() {
+        return this.tail ? this.tail.card : null;
+      }
+      split_from(node) {
+        if (!node) return null;
+        const detached = new CustomDoublyLinkedList();
+        detached.head = node;
+        detached.tail = this.tail;
+        let count = 0;
+        let curr = node;
+        while (curr) {
+          count++;
+          curr = curr.next;
+        }
+        detached._size = count;
+
+        if (node === this.head) {
+          this.head = this.tail = null;
+          this._size = 0;
+        } else {
+          this.tail = node.prev;
+          this.tail.next = null;
+          node.prev = null;
+          this._size -= count;
+        }
+        return detached;
+      }
+      attach(runList) {
+        if (!runList || runList.isEmpty()) return;
+        if (!this.head) {
+          this.head = runList.head;
+          this.tail = runList.tail;
+          this._size = runList._size;
+        } else {
+          this.tail.next = runList.head;
+          runList.head.prev = this.tail;
+          this.tail = runList.tail;
+          this._size += runList._size;
+        }
+      }
+      isEmpty() { return this._size === 0; }
+      size() { return this._size; }
+      toArray() {
+        const arr = [];
+        let curr = this.head;
+        while (curr) {
+          arr.push(curr.card);
+          curr = curr.next;
+        }
+        return arr;
+      }
+      clear() {
+        this.head = this.tail = null;
+        this._size = 0;
+      }
+    }
+
+    class CustomHashMap {
+      constructor(capacity = 64) {
+        this.capacity = capacity;
+        this.buckets = new Array(capacity).fill(null).map(() => []);
+        this._size = 0;
+      }
+      _hash(key) {
+        let h = 0;
+        for (let i = 0; i < key.length; i++) {
+          h = (h * 31 + key.charCodeAt(i)) % this.capacity;
+        }
+        return h;
+      }
+      put(key, val) {
+        const idx = this._hash(key);
+        const b = this.buckets[idx];
+        for (let i = 0; i < b.length; i++) {
+          if (b[i].key === key) {
+            b[i].val = val;
+            return;
+          }
+        }
+        b.push({ key, val });
+        this._size++;
+      }
+      get(key) {
+        const idx = this._hash(key);
+        const b = this.buckets[idx];
+        for (let item of b) {
+          if (item.key === key) return item.val;
+        }
+        return null;
+      }
+      entries() {
+        const all = [];
+        for (let b of this.buckets) {
+          for (let item of b) all.push(item);
+        }
+        return all;
+      }
+      clear() {
+        this.buckets = new Array(this.capacity).fill(null).map(() => []);
+        this._size = 0;
+      }
+    }
+
+    /* Seedable Mulberry32 PRNG */
+    class SeededRNG {
+      constructor(seed = 123456) {
+        this._s = seed;
+      }
+      next() {
+        let t = this._s += 0x6D2B79F5;
+        t = Math.imul(t ^ t >>> 15, t | 1);
+        t ^= t + Math.imul(t ^ t >>> 7, t | 61);
+        return ((t ^ t >>> 14) >>> 0) / 4294967296;
+      }
+    }
+
+    /* ==========================================================================
+       2. SYNTHESIZED WEB AUDIO (ENGINE REV, TIRE SCREECH, TURBO WHOOSH, FANFARE)
+       ========================================================================== */
+    class SoundFX {
+      constructor() {
+        this.ctx = null;
+        this.muted = true; // Off by default as required
+      }
+      init() {
+        if (!this.ctx) {
+          const AudioContext = window.AudioContext || window.webkitAudioContext;
+          this.ctx = new AudioContext();
+        }
+        if (this.ctx.state === 'suspended') {
+          this.ctx.resume();
+        }
+      }
+
+      /* Engine-Rev Rise on Stock Draw */
+      playEngineRev() {
+        if (this.muted) return;
+        this.init();
+        const osc = this.ctx.createOscillator();
+        const gain = this.ctx.createGain();
+        osc.type = 'sawtooth';
+        osc.frequency.setValueAtTime(85, this.ctx.currentTime);
+        osc.frequency.exponentialRampToValueAtTime(310, this.ctx.currentTime + 0.16);
+        gain.gain.setValueAtTime(0.12, this.ctx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.001, this.ctx.currentTime + 0.16);
+        osc.connect(gain);
+        gain.connect(this.ctx.destination);
+        osc.start();
+        osc.stop(this.ctx.currentTime + 0.16);
+      }
+
+      /* Tire-Screech on Illegal Move */
+      playTireScreech() {
+        if (this.muted) return;
+        this.init();
+        const osc = this.ctx.createOscillator();
+        const gain = this.ctx.createGain();
+        osc.type = 'square';
+        osc.frequency.setValueAtTime(2100, this.ctx.currentTime);
+        osc.frequency.linearRampToValueAtTime(800, this.ctx.currentTime + 0.14);
+        gain.gain.setValueAtTime(0.14, this.ctx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.001, this.ctx.currentTime + 0.14);
+        osc.connect(gain);
+        gain.connect(this.ctx.destination);
+        osc.start();
+        osc.stop(this.ctx.currentTime + 0.14);
+      }
+
+      /* Turbo "Whoosh" on Foundation Move */
+      playTurboWhoosh() {
+        if (this.muted) return;
+        this.init();
+        // Synthesize resonant whoosh with bandpass
+        const osc = this.ctx.createOscillator();
+        const gain = this.ctx.createGain();
+        osc.type = 'triangle';
+        osc.frequency.setValueAtTime(350, this.ctx.currentTime);
+        osc.frequency.exponentialRampToValueAtTime(1200, this.ctx.currentTime + 0.08);
+        osc.frequency.exponentialRampToValueAtTime(240, this.ctx.currentTime + 0.22);
+        gain.gain.setValueAtTime(0.15, this.ctx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.001, this.ctx.currentTime + 0.22);
+        osc.connect(gain);
+        gain.connect(this.ctx.destination);
+        osc.start();
+        osc.stop(this.ctx.currentTime + 0.22);
+      }
+
+      /* Nitro Burst on Combo */
+      playNitroBurst() {
+        if (this.muted) return;
+        this.init();
+        const osc = this.ctx.createOscillator();
+        const gain = this.ctx.createGain();
+        osc.type = 'sawtooth';
+        osc.frequency.setValueAtTime(500, this.ctx.currentTime);
+        osc.frequency.linearRampToValueAtTime(1400, this.ctx.currentTime + 0.25);
+        gain.gain.setValueAtTime(0.18, this.ctx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.001, this.ctx.currentTime + 0.35);
+        osc.connect(gain);
+        gain.connect(this.ctx.destination);
+        osc.start();
+        osc.stop(this.ctx.currentTime + 0.35);
+      }
+
+      /* Electronic Fanfare on Win */
+      playWinFanfare() {
+        if (this.muted) return;
+        this.init();
+        const notes = [523.25, 659.25, 783.99, 1046.50, 1318.51];
+        notes.forEach((f, idx) => {
+          setTimeout(() => {
+            const osc = this.ctx.createOscillator();
+            const gain = this.ctx.createGain();
+            osc.type = 'triangle';
+            osc.frequency.value = f;
+            gain.gain.setValueAtTime(0.18, this.ctx.currentTime);
+            gain.gain.exponentialRampToValueAtTime(0.001, this.ctx.currentTime + 0.35);
+            osc.connect(gain);
+            gain.connect(this.ctx.destination);
+            osc.start();
+            osc.stop(this.ctx.currentTime + 0.35);
+          }, idx * 70);
+        });
+      }
+
+      /* Slide click */
+      playSlide() {
+        if (this.muted) return;
+        this.init();
+        const osc = this.ctx.createOscillator();
+        const gain = this.ctx.createGain();
+        osc.type = 'sine';
+        osc.frequency.setValueAtTime(420, this.ctx.currentTime);
+        osc.frequency.exponentialRampToValueAtTime(180, this.ctx.currentTime + 0.05);
+        gain.gain.setValueAtTime(0.08, this.ctx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.001, this.ctx.currentTime + 0.05);
+        osc.connect(gain);
+        gain.connect(this.ctx.destination);
+        osc.start();
+        osc.stop(this.ctx.currentTime + 0.05);
+      }
+    }
+
+    /* ==========================================================================
+       3. CLIENT-SIDE KLONDIKE SOLITAIRE ENGINE
+       ========================================================================== */
+    const SUITS = ['spades', 'hearts', 'clubs', 'diamonds'];
+    const SUIT_SYMBOLS = { 'spades': '♠', 'hearts': '♥', 'clubs': '♣', 'diamonds': '♦' };
+    const RANK_LABELS = { 1: 'A', 2: '2', 3: '3', 4: '4', 5: '5', 6: '6', 7: '7', 8: '8', 9: '9', 10: '10', 11: 'J', 12: 'Q', 13: 'K' };
+
+    class SolitaireEngine {
+      constructor() {
+        this.seed = 123456;
+        this.rng = new SeededRNG(this.seed);
+        this.drawMode = 1;
+        this.score = 0;
+        this.moves = 0;
+
+        this.stock = new CustomQueue();
+        this.waste = new CustomStack();
+        this.foundations = [new CustomStack(), new CustomStack(), new CustomStack(), new CustomStack()];
+        this.tableau = Array.from({ length: 7 }, () => new CustomDoublyLinkedList());
+        this.undoStack = new CustomStack();
+        this.redoStack = new CustomStack();
+        this.cardMap = new CustomHashMap(128);
+      }
+
+      newGame(seed = Math.floor(Math.random() * 900000) + 100000, drawMode = 1) {
+        this.seed = seed;
+        this.rng = new SeededRNG(seed);
+        this.drawMode = drawMode;
+        this.score = 0;
+        this.moves = 0;
+
+        this.stock.clear();
+        this.waste.clear();
+        this.foundations.forEach(f => f.clear());
+        this.tableau.forEach(t => t.clear());
+        this.undoStack.clear();
+        this.redoStack.clear();
+        this.cardMap.clear();
+
+        // 52 cards array
+        const deck = [];
+        for (let s of SUITS) {
+          for (let r = 1; r <= 13; r++) {
+            deck.push({
+              id: `${RANK_LABELS[r]}${s[0].toUpperCase()}`,
+              suit: s,
+              rank: r,
+              color: (s === 'hearts' || s === 'diamonds') ? 'red' : 'black',
+              faceUp: false
+            });
+          }
+        }
+
+        // Fisher-Yates shuffle
+        for (let i = deck.length - 1; i > 0; i--) {
+          const j = Math.floor(this.rng.next() * (i + 1));
+          [deck[i], deck[j]] = [deck[j], deck[i]];
+        }
+
+        // Deal tableau (1..7)
+        for (let col = 0; col < 7; col++) {
+          for (let row = 0; row <= col; row++) {
+            const card = deck.pop();
+            card.faceUp = (row === col);
+            this.tableau[col].append(card);
+          }
+        }
+
+        // Remaining 24 cards into Stock Queue
+        while (deck.length > 0) {
+          const card = deck.pop();
+          card.faceUp = false;
+          this.stock.enqueue(card);
+        }
+
+        this.updateCardMap();
+        return { ok: true, seed: this.seed };
+      }
+
+      updateCardMap() {
+        this.stock.toArray().forEach((c, idx) => {
+          this.cardMap.put(c.id, { pile: 'stock', idx: 0, pos: idx, faceUp: c.faceUp });
+        });
+        this.waste.toArray().forEach((c, idx) => {
+          this.cardMap.put(c.id, { pile: 'waste', idx: 0, pos: idx, faceUp: c.faceUp });
+        });
+        this.foundations.forEach((f, fIdx) => {
+          f.toArray().forEach((c, idx) => {
+            this.cardMap.put(c.id, { pile: 'foundation', idx: fIdx, pos: idx, faceUp: c.faceUp });
+          });
+        });
+        this.tableau.forEach((t, tIdx) => {
+          t.toArray().forEach((c, idx) => {
+            this.cardMap.put(c.id, { pile: 'tableau', idx: tIdx, pos: idx, faceUp: c.faceUp });
+          });
+        });
+      }
+
+      draw() {
+        if (!this.stock.isEmpty()) {
+          const count = Math.min(this.drawMode, this.stock.size());
+          const drawn = [];
+          for (let i = 0; i < count; i++) {
+            const c = this.stock.dequeue();
+            if (c) {
+              c.faceUp = true;
+              this.waste.push(c);
+              drawn.push(c);
+            }
+          }
+          this.undoStack.push({ type: 'DRAW', cards: drawn, count, scoreDelta: 0 });
+          this.redoStack.clear();
+          this.moves++;
+          this.updateCardMap();
+          return { ok: true, action: 'draw', drawn: drawn.length };
+        } else if (!this.waste.isEmpty()) {
+          // Recycle via temporary stack (DS-7)
+          const temp = new CustomStack();
+          const rec = [];
+          while (!this.waste.isEmpty()) {
+            temp.push(this.waste.pop());
+          }
+          while (!temp.isEmpty()) {
+            const c = temp.pop();
+            c.faceUp = false;
+            this.stock.enqueue(c);
+            rec.push(c);
+          }
+          const scoreDelta = this.drawMode === 1 ? -100 : -20;
+          this.score = Math.max(0, this.score + scoreDelta);
+          this.undoStack.push({ type: 'RECYCLE', cards: rec, scoreDelta });
+          this.redoStack.clear();
+          this.moves++;
+          this.updateCardMap();
+          return { ok: true, action: 'recycle', count: rec.length };
+        }
+        return { ok: false, reason: 'Stock and waste are both empty.' };
+      }
+
+      moveToFoundation(sourceCode) {
+        let card = null;
+        let isTableau = false;
+        let tIdx = -1;
+
+        if (sourceCode === 'W') {
+          if (this.waste.isEmpty()) return { ok: false, reason: 'Waste is empty.' };
+          card = this.waste.peek();
+        } else if (sourceCode.startsWith('T')) {
+          tIdx = parseInt(sourceCode[1]) - 1;
+          if (this.tableau[tIdx].isEmpty()) return { ok: false, reason: `T${tIdx+1} is empty.` };
+          card = this.tableau[tIdx].peekTail();
+          isTableau = true;
+        } else {
+          return { ok: false, reason: 'Invalid source code.' };
+        }
+
+        const suitIdx = SUITS.indexOf(card.suit);
+        const fStack = this.foundations[suitIdx];
+        const fTop = fStack.peek();
+
+        if (!fTop) {
+          if (card.rank !== 1) return { ok: false, reason: 'Foundation requires an Ace.' };
+        } else {
+          if (card.rank !== fTop.rank + 1) return { ok: false, reason: 'Rank must be one higher.' };
+        }
+
+        const popped = isTableau ? this.tableau[tIdx].removeTail() : this.waste.pop();
+        fStack.push(popped);
+
+        let flipped = null;
+        let scoreDelta = 10;
+        if (isTableau) {
+          const newTop = this.tableau[tIdx].peekTail();
+          if (newTop && !newTop.faceUp) {
+            newTop.faceUp = true;
+            flipped = newTop;
+            scoreDelta += 5;
+          }
+        }
+
+        this.score += scoreDelta;
+        this.undoStack.push({ type: 'TO_FOUNDATION', source: sourceCode, dest: `F${suitIdx+1}`, card: popped, flipped, scoreDelta });
+        this.redoStack.clear();
+        this.moves++;
+        this.updateCardMap();
+        return { ok: true, card: popped, dest: suitIdx };
+      }
+
+      moveTableau(srcIdx, dstIdx, count = 1) {
+        if (srcIdx === dstIdx) return { ok: false, reason: 'Same pile.' };
+        const srcPile = this.tableau[srcIdx];
+        const dstPile = this.tableau[dstIdx];
+
+        if (srcPile.size() < count) return { ok: false, reason: 'Not enough cards.' };
+
+        // Locate run
+        let curr = srcPile.tail;
+        for (let i = 0; i < count - 1; i++) {
+          if (!curr) return { ok: false, reason: 'Invalid run.' };
+          curr = curr.prev;
+        }
+
+        const startNode = curr;
+        if (!startNode.card.faceUp) return { ok: false, reason: 'Cannot move face-down cards.' };
+
+        const baseCard = startNode.card;
+        const dstTop = dstPile.peekTail();
+
+        if (!dstTop) {
+          if (baseCard.rank !== 13) return { ok: false, reason: 'Only a King can be placed on empty tableau.' };
+        } else {
+          if (baseCard.color === dstTop.color) return { ok: false, reason: 'Colors must alternate.' };
+          if (baseCard.rank !== dstTop.rank - 1) return { ok: false, reason: 'Rank must be one lower.' };
+        }
+
+        const detached = srcPile.split_from(startNode);
+        const movedCards = detached.toArray();
+        dstPile.attach(detached);
+
+        let flipped = null;
+        let scoreDelta = 0;
+        const newTop = srcPile.peekTail();
+        if (newTop && !newTop.faceUp) {
+          newTop.faceUp = true;
+          flipped = newTop;
+          scoreDelta += 5;
+        }
+
+        this.score += scoreDelta;
+        this.undoStack.push({ type: 'TABLEAU', src: srcIdx, dst: dstIdx, cards: movedCards, flipped, scoreDelta });
+        this.redoStack.clear();
+        this.moves++;
+        this.updateCardMap();
+        return { ok: true, count: movedCards.length };
+      }
+
+      moveWasteToTableau(dstIdx) {
+        if (this.waste.isEmpty()) return { ok: false, reason: 'Waste is empty.' };
+        const card = this.waste.peek();
+        const dstPile = this.tableau[dstIdx];
+        const dstTop = dstPile.peekTail();
+
+        if (!dstTop) {
+          if (card.rank !== 13) return { ok: false, reason: 'Only a King can be placed on empty tableau.' };
+        } else {
+          if (card.color === dstTop.color || card.rank !== dstTop.rank - 1) {
+            return { ok: false, reason: 'Must alternate colors and descending rank.' };
+          }
+        }
+
+        const popped = this.waste.pop();
+        dstPile.append(popped);
+        this.score += 5;
+        this.undoStack.push({ type: 'WASTE_TO_TABLEAU', dst: dstIdx, card: popped, scoreDelta: 5 });
+        this.redoStack.clear();
+        this.moves++;
+        this.updateCardMap();
+        return { ok: true, card: popped };
+      }
+
+      undo() {
+        if (this.undoStack.isEmpty()) return { ok: false, reason: 'Nothing to undo.' };
+        const rec = this.undoStack.pop();
+        this.score = Math.max(0, this.score - rec.scoreDelta);
+
+        if (rec.flipped) rec.flipped.faceUp = false;
+
+        if (rec.type === 'TABLEAU') {
+          const count = rec.cards.length;
+          let curr = this.tableau[rec.dst].tail;
+          for (let i = 0; i < count - 1; i++) curr = curr.prev;
+          const detached = this.tableau[rec.dst].split_from(curr);
+          this.tableau[rec.src].attach(detached);
+        } else if (rec.type === 'TO_FOUNDATION') {
+          const fIdx = parseInt(rec.dest[1]) - 1;
+          const card = this.foundations[fIdx].pop();
+          if (rec.source === 'W') {
+            this.waste.push(card);
+          } else {
+            const tIdx = parseInt(rec.source[1]) - 1;
+            this.tableau[tIdx].append(card);
+          }
+        } else if (rec.type === 'WASTE_TO_TABLEAU') {
+          const card = this.tableau[rec.dst].removeTail();
+          this.waste.push(card);
+        } else if (rec.type === 'DRAW') {
+          const restored = [];
+          for (let i = 0; i < rec.count; i++) {
+            const c = this.waste.pop();
+            c.faceUp = false;
+            restored.push(c);
+          }
+          const newQ = new CustomQueue();
+          for (let i = restored.length - 1; i >= 0; i--) newQ.enqueue(restored[i]);
+          while (!this.stock.isEmpty()) newQ.enqueue(this.stock.dequeue());
+          this.stock = newQ;
+        } else if (rec.type === 'RECYCLE') {
+          const cards = [];
+          while (!this.stock.isEmpty()) cards.push(this.stock.dequeue());
+          cards.forEach(c => { c.faceUp = true; this.waste.push(c); });
+        }
+
+        this.redoStack.push(rec);
+        this.updateCardMap();
+        return { ok: true, type: rec.type };
+      }
+
+      redo() {
+        if (this.redoStack.isEmpty()) return { ok: false, reason: 'Nothing to redo.' };
+        const rec = this.redoStack.pop();
+
+        if (rec.type === 'TABLEAU') {
+          const count = rec.cards.length;
+          let curr = this.tableau[rec.src].tail;
+          for (let i = 0; i < count - 1; i++) curr = curr.prev;
+          const detached = this.tableau[rec.src].split_from(curr);
+          this.tableau[rec.dst].attach(detached);
+          if (rec.flipped) rec.flipped.faceUp = true;
+        } else if (rec.type === 'TO_FOUNDATION') {
+          const fIdx = parseInt(rec.dest[1]) - 1;
+          const card = rec.source === 'W' ? this.waste.pop() : this.tableau[parseInt(rec.source[1]) - 1].removeTail();
+          this.foundations[fIdx].push(card);
+          if (rec.flipped) rec.flipped.faceUp = true;
+        } else if (rec.type === 'WASTE_TO_TABLEAU') {
+          const card = this.waste.pop();
+          this.tableau[rec.dst].append(card);
+        } else if (rec.type === 'DRAW') {
+          for (let i = 0; i < rec.count; i++) {
+            const c = this.stock.dequeue();
+            c.faceUp = true;
+            this.waste.push(c);
+          }
+        } else if (rec.type === 'RECYCLE') {
+          const temp = new CustomStack();
+          while (!this.waste.isEmpty()) temp.push(this.waste.pop());
+          while (!temp.isEmpty()) {
+            const c = temp.pop();
+            c.faceUp = false;
+            this.stock.enqueue(c);
+          }
+        }
+
+        this.score += rec.scoreDelta;
+        this.undoStack.push(rec);
+        this.updateCardMap();
+        return { ok: true, type: rec.type };
+      }
+
+      isWon() {
+        return this.foundations.every(f => f.size() === 13);
+      }
+
+      getHint() {
+        // Priority 1: Waste top to foundation
+        if (!this.waste.isEmpty()) {
+          const w = this.waste.peek();
+          const fIdx = SUITS.indexOf(w.suit);
+          const fTop = this.foundations[fIdx].peek();
+          if ((!fTop && w.rank === 1) || (fTop && w.rank === fTop.rank + 1)) {
+            return { ok: true, msg: `Send ${w.id} from Waste to Foundation ♠♥♣♦[${fIdx+1}]` };
+          }
+        }
+        // Priority 1b: Tableau top to foundation
+        for (let i = 0; i < 7; i++) {
+          const top = this.tableau[i].peekTail();
+          if (top && top.faceUp) {
+            const fIdx = SUITS.indexOf(top.suit);
+            const fTop = this.foundations[fIdx].peek();
+            if ((!fTop && top.rank === 1) || (fTop && top.rank === fTop.rank + 1)) {
+              return { ok: true, msg: `Send ${top.id} from T${i+1} to Foundation [${fIdx+1}]` };
+            }
+          }
+        }
+        // Priority 2: Tableau move revealing card
+        for (let s = 0; s < 7; s++) {
+          const cards = this.tableau[s].toArray();
+          const faceDown = cards.filter(c => !c.faceUp).length;
+          const faceUp = cards.filter(c => c.faceUp);
+          if (faceDown > 0 && faceUp.length > 0) {
+            const base = faceUp[0];
+            for (let d = 0; d < 7; d++) {
+              if (s === d) continue;
+              const dTop = this.tableau[d].peekTail();
+              if (!dTop && base.rank === 13) {
+                return { ok: true, msg: `Move ${base.id} run from T${s+1} to empty T${d+1} to reveal card` };
+              }
+              if (dTop && base.color !== dTop.color && base.rank === dTop.rank - 1) {
+                return { ok: true, msg: `Move ${base.id} from T${s+1} onto ${dTop.id} in T${d+1} to reveal card` };
+              }
+            }
+          }
+        }
+        // Priority 3: Waste to tableau
+        if (!this.waste.isEmpty()) {
+          const w = this.waste.peek();
+          for (let d = 0; d < 7; d++) {
+            const dTop = this.tableau[d].peekTail();
+            if ((!dTop && w.rank === 13) || (dTop && w.color !== dTop.color && w.rank === dTop.rank - 1)) {
+              return { ok: true, msg: `Move ${w.id} from Waste to T${d+1}` };
+            }
+          }
+        }
+        // Priority 4: Stock draw
+        if (!this.stock.isEmpty()) return { ok: true, msg: "Draw cards from Stock pile" };
+        if (!this.waste.isEmpty()) return { ok: true, msg: "Recycle Waste back into Stock" };
+        return { ok: false, msg: "No moves found. Game might be stuck!" };
+      }
+    }
+
+    /* ==========================================================================
+       4. UI CONTROLLER: ANIMATIONS, SOUNDS, THEMES, COMBO METER, DRAG & DROP
+       ========================================================================== */
+    class SolitaireUI {
+      constructor() {
+        this.engine = new SolitaireEngine();
+        this.sound = new SoundFX();
+        this.timerInterval = null;
+        this.secondsElapsed = 0;
+        this.comboCount = 0;
+        this.opsHistory = [];
+
+        // Themes: Midnight Run (default), Midnight Casino, Paper Minimal
+        this.themes = ['run', 'casino', 'paper'];
+        this.themeIdx = 0;
+
+        this.dragState = null;
+        this.cacheDOM();
+        this.bindEvents();
+        this.applyTheme('run');
+        this.startNewGame(123456);
+      }
+
+      cacheDOM() {
+        this.el = {
+          hudTimer: document.getElementById('hudTimer'),
+          hudTimerMobile: document.getElementById('hudTimerMobile'),
+          hudScore: document.getElementById('hudScore'),
+          hudScoreMobile: document.getElementById('hudScoreMobile'),
+          hudMoves: document.getElementById('hudMoves'),
+          nitroBarFill: document.getElementById('nitroBarFill'),
+          currentSeedDisplay: document.getElementById('currentSeedDisplay'),
+          drawModeLabel: document.getElementById('drawModeLabel'),
+          stockSlot: document.getElementById('stockSlot'),
+          wasteSlot: document.getElementById('wasteSlot'),
+          btnSound: document.getElementById('btnSound'),
+          soundIconOn: document.getElementById('soundIconOn'),
+          soundIconOff: document.getElementById('soundIconOff'),
+          btnTheme: document.getElementById('btnTheme'),
+          btnXRay: document.getElementById('btnXRay'),
+          btnCloseXray: document.getElementById('btnCloseXray'),
+          xrayDrawer: document.getElementById('xrayDrawer'),
+          btnNewGame: document.getElementById('btnNewGame'),
+          btnHint: document.getElementById('btnHint'),
+          btnUndo: document.getElementById('btnUndo'),
+          btnRedo: document.getElementById('btnRedo'),
+          btnDrawMode: document.getElementById('btnDrawMode'),
+          toastBox: document.getElementById('toastBox'),
+          toastText: document.getElementById('toastText'),
+          winModal: document.getElementById('winModal'),
+          winCanvas: document.getElementById('winCanvas'),
+          winTime: document.getElementById('winTime'),
+          winMoves: document.getElementById('winMoves'),
+          winScore: document.getElementById('winScore'),
+          btnWinNewGame: document.getElementById('btnWinNewGame'),
+          btnWinClose: document.getElementById('btnWinClose'),
+          xrayQueueStream: document.getElementById('xrayQueueStream'),
+          xrayWasteTop: document.getElementById('xrayWasteTop'),
+          xrayFoundationsTotal: document.getElementById('xrayFoundationsTotal'),
+          xrayTableauList: document.getElementById('xrayTableauList'),
+          xrayHashMapBody: document.getElementById('xrayHashMapBody'),
+          xrayOpsLog: document.getElementById('xrayOpsLog'),
+          nitroBurstOverlay: document.getElementById('nitroBurstOverlay'),
+          fastStreak: document.getElementById('fastStreak')
+        };
+      }
+
+      bindEvents() {
+        // Stock draw
+        this.el.stockSlot.addEventListener('click', () => {
+          const res = this.engine.draw();
+          if (res.ok) {
+            this.sound.playEngineRev();
+            this.bumpCombo();
+            this.renderAll();
+          } else {
+            this.sound.playTireScreech();
+            this.showToast(res.reason);
+          }
+        });
+
+        // Hint
+        this.el.btnHint.addEventListener('click', () => {
+          const h = this.engine.getHint();
+          this.showToast(h.msg);
+        });
+
+        // Undo
+        this.el.btnUndo.addEventListener('click', () => {
+          const res = this.engine.undo();
+          if (res.ok) {
+            this.sound.playSlide();
+            this.renderAll();
+          } else {
+            this.showToast(res.reason);
+          }
+        });
+
+        // Redo
+        this.el.btnRedo.addEventListener('click', () => {
+          const res = this.engine.redo();
+          if (res.ok) {
+            this.sound.playSlide();
+            this.renderAll();
+          } else {
+            this.showToast(res.reason);
+          }
+        });
+
+        // Draw mode toggle (1 or 3)
+        this.el.btnDrawMode.addEventListener('click', () => {
+          this.engine.drawMode = this.engine.drawMode === 1 ? 3 : 1;
+          this.el.drawModeLabel.textContent = this.engine.drawMode;
+          this.showToast(`Draw Mode: Draw-${this.engine.drawMode}`);
+        });
+
+        // Sound toggle
+        this.el.btnSound.addEventListener('click', () => {
+          this.sound.muted = !this.sound.muted;
+          if (!this.sound.muted) this.sound.init();
+          this.el.soundIconOn.classList.toggle('hidden', this.sound.muted);
+          this.el.soundIconOff.classList.toggle('hidden', !this.sound.muted);
+          this.showToast(this.sound.muted ? "Sound Muted" : "Web Audio Enabled");
+        });
+
+        // Theme toggle
+        this.el.btnTheme.addEventListener('click', () => {
+          this.themeIdx = (this.themeIdx + 1) % this.themes.length;
+          this.applyTheme(this.themes[this.themeIdx]);
+        });
+
+        // X-Ray Inspector toggle
+        this.el.btnXRay.addEventListener('click', () => {
+          this.el.xrayDrawer.classList.toggle('translate-x-full');
+        });
+        this.el.btnCloseXray.addEventListener('click', () => {
+          this.el.xrayDrawer.classList.add('translate-x-full');
+        });
+
+        // New Game
+        this.el.btnNewGame.addEventListener('click', () => this.startNewGame());
+        this.el.btnWinNewGame.addEventListener('click', () => {
+          this.el.winModal.classList.add('hidden');
+          this.startNewGame();
+        });
+        this.el.btnWinClose.addEventListener('click', () => {
+          this.el.winModal.classList.add('hidden');
+        });
+
+        // Copy seed
+        document.getElementById('btnCopySeed').addEventListener('click', () => {
+          navigator.clipboard.writeText(this.engine.seed.toString());
+          this.showToast(`Seed #${this.engine.seed} copied to clipboard!`);
+        });
+
+        // Global pointer events for drag and drop
+        window.addEventListener('pointermove', (e) => this.handlePointerMove(e));
+        window.addEventListener('pointerup', (e) => this.handlePointerUp(e));
+        window.addEventListener('pointercancel', (e) => this.handlePointerUp(e));
+      }
+
+      applyTheme(name) {
+        document.documentElement.setAttribute('data-theme', name);
+        const labels = { 'run': 'MIDNIGHT RUN (Racing)', 'casino': 'MIDNIGHT CASINO', 'paper': 'PAPER MINIMAL' };
+        this.showToast(`Theme: ${labels[name] || name}`);
+      }
+
+      startNewGame(customSeed = null) {
+        clearInterval(this.timerInterval);
+        this.secondsElapsed = 0;
+        this.comboCount = 0;
+        this.updateTimerDisplay();
+
+        const seed = customSeed || Math.floor(Math.random() * 900000) + 100000;
+        this.engine.newGame(seed, this.engine.drawMode);
+
+        this.el.currentSeedDisplay.textContent = seed;
+        this.el.drawModeLabel.textContent = this.engine.drawMode;
+
+        this.sound.playSlide();
+        this.renderAll();
+        this.startTimer();
+      }
+
+      startTimer() {
+        this.timerInterval = setInterval(() => {
+          this.secondsElapsed++;
+          this.updateTimerDisplay();
+        }, 1000);
+      }
+
+      updateTimerDisplay() {
+        const m = Math.floor(this.secondsElapsed / 60).toString().padStart(2, '0');
+        const s = (this.secondsElapsed % 60).toString().padStart(2, '0');
+        const str = `${m}:${s}`;
+        this.el.hudTimer.textContent = str;
+        this.el.hudTimerMobile.textContent = str;
+      }
+
+      bumpCombo() {
+        this.comboCount = Math.min(10, this.comboCount + 1);
+        const pct = (this.comboCount / 10) * 100;
+        this.el.nitroBarFill.style.width = `${pct}%`;
+
+        if (this.comboCount === 10) {
+          // Trigger nitro burst!
+          this.sound.playNitroBurst();
+          this.el.nitroBurstOverlay.classList.add('active');
+          this.el.fastStreak.classList.remove('hidden');
+          setTimeout(() => {
+            this.el.nitroBurstOverlay.classList.remove('active');
+            this.el.fastStreak.classList.add('hidden');
+            this.comboCount = 0;
+            this.el.nitroBarFill.style.width = '0%';
+          }, 1200);
+        }
+      }
+
+      renderAll() {
+        this.renderStock();
+        this.renderWaste();
+        this.renderFoundations();
+        this.renderTableau();
+        this.updateHUD();
+        this.updateXRay();
+      }
+
+      updateHUD() {
+        const paddedScore = this.engine.score.toString().padStart(5, '0');
+        this.el.hudScore.textContent = paddedScore;
+        this.el.hudScoreMobile.textContent = this.engine.score;
+        this.el.hudMoves.textContent = this.engine.moves;
+      }
+
+      renderStock() {
+        const count = this.engine.stock.size();
+        this.el.stockSlot.innerHTML = '';
+        if (count > 0) {
+          const backEl = document.createElement('div');
+          backEl.className = 'w-full h-full racing-card-back';
+          backEl.innerHTML = `
+            <div class="racing-stripe"></div>
+            <div class="chevron-emblem"><span class="chevron-inner">&gt;&gt;</span></div>
+            <span class="absolute bottom-1 right-1 text-[9px] font-mono text-cyan-300 bg-black/80 px-1 rounded">${count}</span>
+          `;
+          this.el.stockSlot.appendChild(backEl);
+        } else {
+          this.el.stockSlot.innerHTML = `
+            <svg class="w-6 h-6 text-cyan-400/50" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/>
+            </svg>
+          `;
+        }
+      }
+
+      renderWaste() {
+        this.el.wasteSlot.innerHTML = '';
+        const arr = this.engine.waste.toArray();
+        if (arr.length === 0) {
+          this.el.wasteSlot.innerHTML = `<span class="text-zinc-600 text-xs">∅</span>`;
+          return;
+        }
+        const visible = Math.min(this.engine.drawMode === 3 ? 3 : 1, arr.length);
+        for (let i = visible - 1; i >= 0; i--) {
+          const card = arr[i];
+          const el = this.createCardElement(card, true);
+          el.style.position = 'absolute';
+          el.style.left = `${(visible - 1 - i) * 14}px`;
+          el.style.top = '0';
+          el.style.zIndex = `${10 - i}`;
+          this.el.wasteSlot.appendChild(el);
+        }
+      }
+
+      renderFoundations() {
+        this.engine.foundations.forEach((f, idx) => {
+          const slot = document.getElementById(`foundation-${idx}`);
+          slot.innerHTML = '';
+          const top = f.peek();
+          if (top) {
+            const cardEl = this.createCardElement(top);
+            slot.appendChild(cardEl);
+          } else {
+            const symbols = ['♠', '♥', '♣', '♦'];
+            const colors = ['text-zinc-500', 'text-red-500/70', 'text-zinc-500', 'text-red-500/70'];
+            slot.innerHTML = `<span class="${colors[idx]} text-lg">${symbols[idx]}</span>`;
+          }
+        });
+      }
+
+      renderTableau() {
+        this.engine.tableau.forEach((list, colIdx) => {
+          const colEl = document.querySelector(`.tableau-col[data-col="${colIdx}"]`);
+          const existing = colEl.querySelectorAll('.solitaire-card');
+          existing.forEach(c => c.remove());
+
+          let curr = list.head;
+          let row = 0;
+          let topOffset = 0;
+
+          while (curr) {
+            const card = curr.card;
+            const el = this.createCardElement(card);
+            el.style.position = 'absolute';
+            el.style.top = `${topOffset}px`;
+            el.style.zIndex = `${row + 1}`;
+            el.dataset.col = colIdx;
+            el.dataset.row = row;
+            colEl.appendChild(el);
+
+            topOffset += card.faceUp ? 26 : 14;
+            curr = curr.next;
+            row++;
+          }
+        });
+      }
+
+      createCardElement(card, isWaste = false) {
+        const div = document.createElement('div');
+        div.className = `solitaire-card ${card.faceUp ? 'face-up' : 'face-down'}`;
+        div.id = `card-${card.id}`;
+        div.dataset.cardId = card.id;
+
+        const rankLabel = RANK_LABELS[card.rank];
+        const suitSym = SUIT_SYMBOLS[card.suit];
+        const suitClass = card.color === 'red' ? 'red-suit' : 'black-suit';
+
+        div.innerHTML = `
+          <div class="card-inner">
+            <div class="card-face card-front ${suitClass}">
+              <!-- Top Left Index -->
+              <div class="flex flex-col items-center leading-none text-left self-start">
+                <span class="text-xs md:text-sm font-black italic tracking-tighter" style="font-family: var(--font-display);">${rankLabel}</span>
+                <span class="text-[10px] md:text-xs">${suitSym}</span>
+              </div>
+              <!-- Center Emblem -->
+              <div class="flex items-center justify-center text-lg md:text-2xl font-black italic opacity-90" style="font-family: var(--font-display);">
+                ${card.rank > 10 ? rankLabel : suitSym}
+              </div>
+              <!-- Bottom Right Index -->
+              <div class="flex flex-col items-center leading-none text-right self-end rotate-180">
+                <span class="text-xs md:text-sm font-black italic tracking-tighter" style="font-family: var(--font-display);">${rankLabel}</span>
+                <span class="text-[10px] md:text-xs">${suitSym}</span>
+              </div>
+            </div>
+            <div class="card-face card-back">
+              <div class="racing-card-back">
+                <div class="racing-stripe"></div>
+                <div class="chevron-emblem"><span class="chevron-inner">&gt;&gt;</span></div>
+              </div>
+            </div>
+          </div>
+        `;
+
+        if (card.faceUp) {
+          div.addEventListener('pointerdown', (e) => this.handlePointerDown(e, card, isWaste));
+          div.addEventListener('dblclick', () => this.handleDoubleClick(card, isWaste));
+        }
+
+        return div;
+      }
+
+      /* Double Click: Auto-send to foundation */
+      handleDoubleClick(card, isWaste) {
+        if (!card.faceUp) return;
+        const sourceCode = isWaste ? 'W' : `T${parseInt(document.getElementById(`card-${card.id}`).dataset.col) + 1}`;
+        const res = this.engine.moveToFoundation(sourceCode);
+        if (res.ok) {
+          this.sound.playTurboWhoosh();
+          this.bumpCombo();
+          const fSlot = document.getElementById(`foundation-${res.dest}`);
+          fSlot.classList.add('nitro-flash');
+          setTimeout(() => fSlot.classList.remove('nitro-flash'), 600);
+          this.renderAll();
+          if (this.engine.isWon()) this.triggerVictory();
+        } else {
+          this.sound.playTireScreech();
+          this.showToast(res.reason);
+        }
+      }
+
+      /* Drag & Drop Handling */
+      handlePointerDown(e, card, isWaste) {
+        if (!card.faceUp) return;
+        if (e.button !== 0 && e.pointerType === 'mouse') return;
+
+        const cardEl = document.getElementById(`card-${card.id}`);
+        if (!cardEl) return;
+
+        const rect = cardEl.getBoundingClientRect();
+        const offsetX = e.clientX - rect.left;
+        const offsetY = e.clientY - rect.top;
+
+        let dragElements = [];
+        let sourceInfo = null;
+
+        if (isWaste) {
+          sourceInfo = { type: 'waste' };
+          dragElements.push({ el: cardEl, initialLeft: rect.left, initialTop: rect.top });
+        } else {
+          const colIdx = parseInt(cardEl.dataset.col);
+          const rowIdx = parseInt(cardEl.dataset.row);
+          const colEl = document.querySelector(`.tableau-col[data-col="${colIdx}"]`);
+          const cardsInCol = Array.from(colEl.querySelectorAll('.solitaire-card'));
+          const runCards = cardsInCol.slice(rowIdx);
+
+          sourceInfo = { type: 'tableau', col: colIdx, count: runCards.length };
+          runCards.forEach((cEl, idx) => {
+            const r = cEl.getBoundingClientRect();
+            dragElements.push({ el: cEl, initialLeft: r.left, initialTop: r.top });
+          });
+        }
+
+        this.dragState = {
+          card,
+          sourceInfo,
+          dragElements,
+          offsetX,
+          offsetY
+        };
+
+        dragElements.forEach(item => {
+          item.el.classList.add('is-dragging');
+          item.el.style.position = 'fixed';
+          item.el.style.left = `${item.initialLeft}px`;
+          item.el.style.top = `${item.initialTop}px`;
+        });
+      }
+
+      handlePointerMove(e) {
+        if (!this.dragState) return;
+        const { dragElements, offsetX, offsetY } = this.dragState;
+        dragElements.forEach((item, idx) => {
+          item.el.style.left = `${e.clientX - offsetX}px`;
+          item.el.style.top = `${e.clientY - offsetY + (idx * 26)}px`;
+        });
+      }
+
+      handlePointerUp(e) {
+        if (!this.dragState) return;
+        const { card, sourceInfo, dragElements } = this.dragState;
+        this.dragState = null;
+
+        // Find target drop zone
+        const dropTargets = document.elementsFromPoint(e.clientX, e.clientY);
+        let handled = false;
+
+        // 1. Drop on foundation
+        const foundationSlot = dropTargets.find(el => el.classList && el.classList.contains('foundation-slot'));
+        if (foundationSlot && dragElements.length === 1) {
+          const srcCode = sourceInfo.type === 'waste' ? 'W' : `T${sourceInfo.col + 1}`;
+          const res = this.engine.moveToFoundation(srcCode);
+          if (res.ok) {
+            handled = true;
+            this.sound.playTurboWhoosh();
+            this.bumpCombo();
+            foundationSlot.classList.add('nitro-flash');
+            setTimeout(() => foundationSlot.classList.remove('nitro-flash'), 600);
+            this.renderAll();
+            if (this.engine.isWon()) this.triggerVictory();
+          } else {
+            this.showToast(res.reason);
+          }
+        }
+
+        // 2. Drop on tableau column
+        if (!handled) {
+          const colEl = dropTargets.find(el => el.classList && el.classList.contains('tableau-col'));
+          if (colEl) {
+            const dstCol = parseInt(colEl.dataset.col);
+            if (sourceInfo.type === 'waste') {
+              const res = this.engine.moveWasteToTableau(dstCol);
+              if (res.ok) {
+                handled = true;
+                this.sound.playSlide();
+                this.bumpCombo();
+                this.renderAll();
+              } else {
+                this.showToast(res.reason);
+              }
+            } else {
+              const res = this.engine.moveTableau(sourceInfo.col, dstCol, sourceInfo.count);
+              if (res.ok) {
+                handled = true;
+                this.sound.playSlide();
+                this.bumpCombo();
+                this.renderAll();
+              } else {
+                this.showToast(res.reason);
+              }
+            }
+          }
+        }
+
+        if (!handled) {
+          this.sound.playTireScreech();
+        }
+
+        // Clean up styles
+        dragElements.forEach(item => {
+          item.el.classList.remove('is-dragging');
+        });
+        this.renderAll();
+      }
+
+      triggerVictory() {
+        clearInterval(this.timerInterval);
+        this.sound.playWinFanfare();
+
+        this.el.winTime.textContent = this.el.hudTimer.textContent;
+        this.el.winMoves.textContent = this.engine.moves;
+        this.el.winScore.textContent = `${this.engine.score} pts`;
+        this.el.winModal.classList.remove('hidden');
+
+        // Checkered flag celebration cascade
+        this.runVictoryCascade();
+      }
+
+      runVictoryCascade() {
+        const canvas = this.el.winCanvas;
+        const ctx = canvas.getContext('2d');
+        canvas.width = window.innerWidth;
+        canvas.height = window.innerHeight;
+
+        const particles = Array.from({ length: 80 }, () => ({
+          x: Math.random() * canvas.width,
+          y: -20,
+          vx: (Math.random() - 0.5) * 6,
+          vy: Math.random() * 4 + 3,
+          size: Math.random() * 12 + 8,
+          color: ['#00f0ff', '#ff3c00', '#ffffff', '#ffea00'][Math.floor(Math.random() * 4)]
+        }));
+
+        let animId = null;
+        const animate = () => {
+          ctx.clearRect(0, 0, canvas.width, canvas.height);
+          particles.forEach(p => {
+            p.x += p.vx;
+            p.y += p.vy;
+            ctx.fillStyle = p.color;
+            ctx.fillRect(p.x, p.y, p.size, p.size * 0.6);
+          });
+          animId = requestAnimationFrame(animate);
+        };
+        animate();
+        setTimeout(() => cancelAnimationFrame(animId), 6000);
+      }
+
+      updateXRay() {
+        // 1. Stock stream
+        const stockArr = this.engine.stock.toArray();
+        this.el.xrayQueueStream.innerHTML = stockArr.slice(0, 8).map(c => 
+          `<span class="px-1.5 py-0.5 rounded bg-black/60 border border-cyan-400/30 text-cyan-300 font-bold">${c.id}</span>`
+        ).join('') + (stockArr.length > 8 ? `<span class="text-zinc-500 self-center">+${stockArr.length - 8}</span>` : '');
+
+        // 2. Waste top
+        const wTop = this.engine.waste.peek();
+        this.el.xrayWasteTop.textContent = wTop ? `${wTop.id} (Size: ${this.engine.waste.size()})` : 'Empty';
+
+        // 3. Foundations
+        const fTotal = this.engine.foundations.reduce((acc, f) => acc + f.size(), 0);
+        this.el.xrayFoundationsTotal.textContent = `${fTotal} / 52`;
+        document.getElementById('xf0').textContent = this.engine.foundations[0].size();
+        document.getElementById('xf1').textContent = this.engine.foundations[1].size();
+        document.getElementById('xf2').textContent = this.engine.foundations[2].size();
+        document.getElementById('xf3').textContent = this.engine.foundations[3].size();
+
+        // 4. Tableau DLL
+        this.el.xrayTableauList.innerHTML = this.engine.tableau.map((t, i) => {
+          const cards = t.toArray().map(c => c.faceUp ? c.id : '[##]').join(' &harr; ');
+          return `<div><b class="text-amber-400">T${i+1} (${t.size()}):</b> ${cards || 'Empty'}</div>`;
+        }).join('');
+
+        // 5. HashMap entries
+        const entries = this.engine.cardMap.entries();
+        this.el.xrayHashMapBody.innerHTML = entries.slice(0, 20).map(e => 
+          `<div><span class="text-cyan-400">${e.key}</span> &rarr; {${e.val.pile}, p:${e.val.pos}, up:${e.val.faceUp}}</div>`
+        ).join('');
+      }
+
+      showToast(msg) {
+        this.el.toastText.textContent = msg;
+        this.el.toastBox.style.opacity = '1';
+        clearTimeout(this.toastTimeout);
+        this.toastTimeout = setTimeout(() => {
+          this.el.toastBox.style.opacity = '0';
+        }, 2200);
+      }
+    }
+
+    // Initialize application on DOM load
+    window.addEventListener('DOMContentLoaded', () => {
+      window.app = new SolitaireUI();
+    });
+  </script>
+</body>
+</html>
